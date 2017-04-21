@@ -48,6 +48,7 @@ project(":core") {
 
     dependencies {
         compile "com.badlogicgames.gdx:gdx:$gdxVersion"
+        compile "org.codetome:hexameter-core:3.0.0"
     }
 }
 
