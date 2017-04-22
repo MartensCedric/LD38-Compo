@@ -1,10 +1,9 @@
 package com.martenscedric;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.PolygonRegion;
-import com.badlogic.gdx.graphics.g2d.PolygonSprite;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.utils.ShortArray;
 import org.codetome.hexameter.core.api.Hexagon;
@@ -17,11 +16,20 @@ import org.codetome.hexameter.core.api.defaults.DefaultSatelliteData;
 public class TileData extends DefaultSatelliteData {
     private TileType tileType;
     private PolygonSprite sprite;
+    private Texture texture;
     private Hexagon<TileData> parent;
 
     public TileData(Hexagon<TileData> parent)
     {
         this.parent = parent;
+    }
+
+    public Texture getTexture() {
+        return texture;
+    }
+
+    public void setTexture(Texture texture) {
+        this.texture = texture;
     }
 
     public PolygonSprite getSprite() {
@@ -62,12 +70,43 @@ public class TileData extends DefaultSatelliteData {
     public void setTileType(TileType tileType) {
         this.tileType = tileType;
 
-        if(tileType == TileType.WATER)
+        switch (tileType)
         {
-            setColor(0x4286F4FF);
-        }else if(tileType == TileType.GRASS)
-        {
-            setColor(0x11FF38FF);
+            case GRASS:
+                setColor(0x11FF38FF);
+                break;
+            case WATER:
+                setColor(0x4286F4FF);
+                break;
+            case HOUSE:
+                setTexture(AssetLoader.assetManager.get("house.png", Texture.class));
+                break;
         }
+    }
+
+    public void draw(PolygonSpriteBatch poly, SpriteBatch batch)
+    {
+        if (tileType == TileType.WATER ||
+                tileType == tileType.GRASS)
+        {
+            renderTileColor(poly);
+        }else{
+            renderTileColor(poly);
+            renderTileSprite(batch);
+        }
+    }
+
+    private void renderTileColor(PolygonSpriteBatch poly)
+    {
+        poly.begin();
+        sprite.draw(poly);
+        poly.end();
+    }
+
+    private void renderTileSprite(SpriteBatch batch)
+    {
+        batch.begin();
+        batch.draw(texture, (float) parent.getCenterX() - texture.getWidth()/2, (float) (parent.getCenterY() - texture.getHeight()/2));
+        batch.end();
     }
 }

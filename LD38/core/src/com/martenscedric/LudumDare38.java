@@ -4,21 +4,17 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.EarClippingTriangulator;
-import com.badlogic.gdx.utils.ShortArray;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
-import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
-import rx.functions.Action1;
 
-import java.util.Random;
 
 
 public class LudumDare38 extends ApplicationAdapter {
@@ -50,9 +46,9 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
 
+		AssetLoader.load();
 
-
-		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
+		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 5)).get();
 		TileData data1 = hex1.getSatelliteData().get();
 		data1.setTileType(TileType.WATER);
 
@@ -63,19 +59,21 @@ public class LudumDare38 extends ApplicationAdapter {
 		Hexagon<TileData> hex3 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(7, 0)).get();
 		TileData data3 = hex3.getSatelliteData().get();
 		data3.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex4 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 2)).get();
+		TileData data4 = hex4.getSatelliteData().get();
+		data4.setTileType(TileType.HOUSE);
+
 	}
 
 	@Override
 	public void render () {
-		Gdx.gl.glClearColor(1, 1, 1, 1);
+		Gdx.gl.glClearColor(66f/255f, 206f/255f, 244f/255f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		polyBatch.begin();
 		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
 		hexagons.forEach(hex -> {
-			TileData data = hex.getSatelliteData().get();
-			data.getSprite().draw(polyBatch);
+			hex.getSatelliteData().get().draw(polyBatch, batch);
 		});
-		polyBatch.end();
 		batch.begin();
 
 		batch.end();
@@ -149,7 +147,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
 		hexagons.forEach(hex -> {
 			TileData data = hex.getSatelliteData().get();
-    		data.setColor(0x11FF38FF);
+    		data.setTileType(TileType.GRASS);
         });
 
 	}
