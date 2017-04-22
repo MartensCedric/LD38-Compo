@@ -16,6 +16,7 @@ public class AssetLoader
         assetManager.load("wind.png", Texture.class);
         assetManager.load("farm.png", Texture.class);
         assetManager.load("mine.png", Texture.class);
+        assetManager.load("factory.png", Texture.class);
         assetManager.finishLoading();
     }
 }

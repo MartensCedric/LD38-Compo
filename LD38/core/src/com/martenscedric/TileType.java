@@ -6,11 +6,12 @@ package com.martenscedric;
 public enum TileType
 {
     GRASS("Grass", "An empty area"),
-    WATER("Water", "Adjacent farms get a +1 range bonus"),
+    WATER("Water", "Wet"),
     HOUSE("Worker house", "Provides a worker to every adjacent tile"),
-    FARM("Farm", "Provides food to every adjacent tile and produces a small amount of resources. Needs a worker"),
-    MINE("Mine", "Produces a large amount of resources. Needs a worker and energy"),
+    FARM("Farm", "Provides food to every adjacent tile and produces a small amount of resources."),
+    MINE("Mine", "Provides minerals to every adjacent tiles. Needs a worker"),
     WIND("Wind turbine", "Produces energy to every adjacent tile"),
+    FACTORY("Factory", "Produces consumer goods to every adjacent tile. Needs a worker, energy and minerals"),
     BANK("Bank", "Produces money");
 
     private String name;

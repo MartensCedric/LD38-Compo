@@ -96,6 +96,9 @@ public class TileData extends DefaultSatelliteData {
             case MINE:
                 setTexture(AssetLoader.assetManager.get("mine.png", Texture.class));
                 break;
+            case FACTORY:
+                setTexture(AssetLoader.assetManager.get("factory.png", Texture.class));
+                break;
         }
     }
 

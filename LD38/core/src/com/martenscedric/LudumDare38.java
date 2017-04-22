@@ -25,7 +25,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	private final int WATER_TILES = 3;
 	private final int GRID_WIDTH = 9;
 	private final int GRID_HEIGHT = 9;
-	private final int MENU_PADDING_Y = 5;
+	private final int MENU_PADDING_Y = 10;
 	private SpriteBatch batch;
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
@@ -103,6 +103,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		menuTextures.add(AssetLoader.assetManager.get("farm.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("factory.png", Texture.class));
 	}
 
 	@Override
@@ -268,6 +269,9 @@ public class LudumDare38 extends ApplicationAdapter {
 				case WIND:
 					texture = AssetLoader.assetManager.get("wind.png", Texture.class);
 					break;
+				case FACTORY:
+					texture = AssetLoader.assetManager.get("factory.png", Texture.class);
+					break;
 			}
 
 			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
@@ -306,6 +310,8 @@ public class LudumDare38 extends ApplicationAdapter {
 						return TileType.MINE;
 					case 3:
 						return TileType.WIND;
+					case 4:
+						return TileType.FACTORY;
 				}
 			}
 
@@ -320,6 +326,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		boolean farm = false;
 		boolean worker = false;
 		boolean energy = false;
+		boolean mineral = false;
 		switch (type)
 		{
 			case FARM:
@@ -355,6 +362,19 @@ public class LudumDare38 extends ApplicationAdapter {
 						energy = true;
 				}
 				return worker && energy;
+			case FACTORY:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+						worker = true;
+
+					if(tile.getSatelliteData().get().getTileType() == TileType.WIND)
+						energy = true;
+
+					if(tile.getSatelliteData().get().getTileType() == TileType.MINE)
+						mineral = true;
+				}
+				return worker && energy && mineral;
 		}
 
 
