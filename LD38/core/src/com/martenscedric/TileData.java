@@ -86,6 +86,12 @@ public class TileData extends DefaultSatelliteData {
             case WIND:
                 setTexture(AssetLoader.assetManager.get("wind.png", Texture.class));
                 break;
+            case FARM:
+                setTexture(AssetLoader.assetManager.get("farm.png", Texture.class));
+                break;
+            case MINE:
+                setTexture(AssetLoader.assetManager.get("mine.png", Texture.class));
+                break;
         }
     }
 
