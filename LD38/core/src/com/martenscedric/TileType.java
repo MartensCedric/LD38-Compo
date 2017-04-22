@@ -5,7 +5,8 @@ package com.martenscedric;
  */
 public enum TileType
 {
-    EMPTY,
+    GRASS,
+    WATER,
     HOUSE,
     FARM,
     MINE,

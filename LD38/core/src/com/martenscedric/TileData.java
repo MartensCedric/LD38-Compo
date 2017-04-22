@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.utils.ShortArray;
 import org.codetome.hexameter.core.api.Hexagon;
 import org.codetome.hexameter.core.api.Point;
-import org.codetome.hexameter.core.api.contract.SatelliteData;
 import org.codetome.hexameter.core.api.defaults.DefaultSatelliteData;
 
 /**
@@ -62,5 +61,13 @@ public class TileData extends DefaultSatelliteData {
 
     public void setTileType(TileType tileType) {
         this.tileType = tileType;
+
+        if(tileType == TileType.WATER)
+        {
+            setColor(0x4286F4FF);
+        }else if(tileType == TileType.GRASS)
+        {
+            setColor(0x11FF38FF);
+        }
     }
 }

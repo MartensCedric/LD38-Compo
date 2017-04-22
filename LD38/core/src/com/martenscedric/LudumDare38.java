@@ -14,11 +14,17 @@ import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.utils.ShortArray;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
+import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
 import rx.functions.Action1;
 
+import java.util.Random;
+
 
 public class LudumDare38 extends ApplicationAdapter {
+	private final int WATER_TILES = 3;
+	private final int GRID_WIDTH = 9;
+	private final int GRID_HEIGHT = 9;
 	private SpriteBatch batch;
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
@@ -31,8 +37,8 @@ public class LudumDare38 extends ApplicationAdapter {
 		polyBatch = new PolygonSpriteBatch();
 
 		HexagonalGridBuilder<TileData> builder = new HexagonalGridBuilder<TileData>()
-				.setGridHeight(9)
-				.setGridWidth(9)
+				.setGridHeight(GRID_WIDTH)
+				.setGridWidth(GRID_HEIGHT)
 				.setGridLayout(HexagonalGridLayout.HEXAGONAL)
 				.setOrientation(HexagonOrientation.FLAT_TOP)
 				.setRadius(Gdx.graphics.getWidth()/16);
@@ -43,6 +49,20 @@ public class LudumDare38 extends ApplicationAdapter {
 		initInput();
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
+
+
+
+		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
+		TileData data1 = hex1.getSatelliteData().get();
+		data1.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex2 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(2, 1)).get();
+		TileData data2 = hex2.getSatelliteData().get();
+		data2.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex3 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(7, 0)).get();
+		TileData data3 = hex3.getSatelliteData().get();
+		data3.setTileType(TileType.WATER);
 	}
 
 	@Override
@@ -87,8 +107,10 @@ public class LudumDare38 extends ApplicationAdapter {
 
 				if(!Gdx.input.isButtonPressed(Input.Buttons.LEFT))
 					return false;
+
+				screenY = Gdx.graphics.getHeight() - screenY;
 				Hexagon<TileData> data = grid.getByPixelCoordinate(screenX, screenY).get();
-				System.out.println(data.getCenterX() + " " + data.getCenterY());
+				System.out.println(data.getCubeCoordinate().toAxialKey());
 				return true;
 			}
 
@@ -129,6 +151,7 @@ public class LudumDare38 extends ApplicationAdapter {
 			TileData data = hex.getSatelliteData().get();
     		data.setColor(0x11FF38FF);
         });
+
 	}
 
 	private void renderHexs()
