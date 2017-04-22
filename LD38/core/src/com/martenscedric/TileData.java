@@ -18,6 +18,8 @@ public class TileData extends DefaultSatelliteData {
     private PolygonSprite sprite;
     private Texture texture;
     private Hexagon<TileData> parent;
+    private int drawCalls = 0;
+    private boolean tileFlipped = false;
 
     public TileData(Hexagon<TileData> parent)
     {
@@ -81,6 +83,9 @@ public class TileData extends DefaultSatelliteData {
             case HOUSE:
                 setTexture(AssetLoader.assetManager.get("house.png", Texture.class));
                 break;
+            case WIND:
+                setTexture(AssetLoader.assetManager.get("wind.png", Texture.class));
+                break;
         }
     }
 
@@ -92,8 +97,16 @@ public class TileData extends DefaultSatelliteData {
             renderTileColor(poly);
         }else{
             renderTileColor(poly);
-            renderTileSprite(batch);
+            if(tileType == TileType.WIND)
+            {
+                tileFlipped = drawCalls < 30;
+                renderTileSprite(batch, tileFlipped);
+
+            }else{
+                renderTileSprite(batch);
+            }
         }
+        drawCalls = ++drawCalls % 60;
     }
 
     private void renderTileColor(PolygonSpriteBatch poly)
@@ -105,8 +118,15 @@ public class TileData extends DefaultSatelliteData {
 
     private void renderTileSprite(SpriteBatch batch)
     {
+        renderTileSprite(batch, false);
+    }
+
+    private void renderTileSprite(SpriteBatch batch, boolean tileFlipped)
+    {
         batch.begin();
-        batch.draw(texture, (float) parent.getCenterX() - texture.getWidth()/2, (float) (parent.getCenterY() - texture.getHeight()/2));
+        batch.draw(texture, (float) parent.getCenterX() - texture.getWidth()/2, (float) (parent.getCenterY() - texture.getHeight()/2),
+                (float)texture.getWidth(), (float)texture.getHeight(), 0, 0,
+                texture.getWidth(), texture.getHeight(), tileFlipped, false);
         batch.end();
     }
 }

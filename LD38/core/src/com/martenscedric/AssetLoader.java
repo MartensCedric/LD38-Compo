@@ -13,6 +13,7 @@ public class AssetLoader
     public static void load()
     {
         assetManager.load("house.png", Texture.class);
+        assetManager.load("wind.png", Texture.class);
         assetManager.finishLoading();
     }
 }

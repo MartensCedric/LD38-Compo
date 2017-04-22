@@ -64,6 +64,10 @@ public class LudumDare38 extends ApplicationAdapter {
 		TileData data4 = hex4.getSatelliteData().get();
 		data4.setTileType(TileType.HOUSE);
 
+		Hexagon<TileData> hex5 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 3)).get();
+		TileData data5 = hex5.getSatelliteData().get();
+		data5.setTileType(TileType.WIND);
+
 	}
 
 	@Override
