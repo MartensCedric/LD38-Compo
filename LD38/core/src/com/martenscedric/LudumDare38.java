@@ -4,14 +4,13 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.GdxRuntimeException;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
@@ -28,8 +27,9 @@ public class LudumDare38 extends ApplicationAdapter {
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
 	private ShapeRenderer shapeRenderer;
-	private TileType currentCursorSelect = TileType.FARM;
-	private ShaderProgram program;
+	private TileType currentCursorSelect = TileType.HOUSE;
+	private ShaderProgram invalidPlacement;
+	private ShaderProgram okPlacement;
 	
 	@Override
 	public void create () {
@@ -52,10 +52,15 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.setAutoShapeType(true);
 
 		AssetLoader.load();
+
 		String vertexShader = Gdx.files.internal("defaultvertex.vs").readString();
 		String redShader = Gdx.files.internal("redtrans.fs").readString();
-		program = new ShaderProgram(vertexShader, redShader);
+		invalidPlacement = new ShaderProgram(vertexShader, redShader);
+		if (!invalidPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + invalidPlacement.getLog());
 
+		String okShader = Gdx.files.internal("slightlytrans.fs").readString();
+		okPlacement = new ShaderProgram(vertexShader, okShader);
+		if (!okPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + okPlacement.getLog());
 		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 5)).get();
 		TileData data1 = hex1.getSatelliteData().get();
 		data1.setTileType(TileType.WATER);
@@ -257,20 +262,15 @@ public class LudumDare38 extends ApplicationAdapter {
 			if(dataOpt.isPresent())
 			{
 				Hexagon<TileData> data = dataOpt.get();
-
+				batch.begin();
 				if(data.getSatelliteData().get().getTileType() == TileType.GRASS)
-				{
-					batch.begin();
-					batch.draw(texture, (float) (data.getCenterX() - texture.getWidth()/2), (float) (data.getCenterY() - texture.getHeight()/2));
-					batch.end();
-				}else{
+					batch.setShader(okPlacement);
+				else
+					batch.setShader(invalidPlacement);
 
-					batch.begin();
-					batch.setShader(program);
-					batch.draw(texture, (float) (data.getCenterX() - texture.getWidth()/2), (float) (data.getCenterY() - texture.getHeight()/2));
-					batch.setShader(null);
-					batch.end();
-				}
+				batch.draw(texture, (float) (data.getCenterX() - texture.getWidth()/2), (float) (data.getCenterY() - texture.getHeight()/2));
+				batch.setShader(null);
+				batch.end();
 			}
 		}
 	}
