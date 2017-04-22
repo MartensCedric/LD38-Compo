@@ -13,8 +13,13 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
+import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
+import sun.security.provider.SHA;
 
+import javax.xml.soap.Text;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class LudumDare38 extends ApplicationAdapter {
@@ -91,6 +96,8 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.begin();
 		renderHexs();
 		shapeRenderer.end();
+		drawMenu();
+
 	}
 
 	private void initInput()
@@ -118,8 +125,13 @@ public class LudumDare38 extends ApplicationAdapter {
 					return false;
 
 				screenY = Gdx.graphics.getHeight() - screenY;
-				Hexagon<TileData> data = grid.getByPixelCoordinate(screenX, screenY).get();
-				System.out.println(data.getCubeCoordinate().toAxialKey());
+				Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(screenX, screenY);
+				if(dataOpt.isPresent())
+				{
+					Hexagon<TileData> data = dataOpt.get();
+					System.out.println(data.getCubeCoordinate().toAxialKey() +  " " + data.getSatelliteData().get().getTileType().getName());
+				}
+
 				return true;
 			}
 
@@ -160,7 +172,6 @@ public class LudumDare38 extends ApplicationAdapter {
 			TileData data = hex.getSatelliteData().get();
     		data.setTileType(TileType.GRASS);
         });
-
 	}
 
 	private void renderHexs()
@@ -182,6 +193,39 @@ public class LudumDare38 extends ApplicationAdapter {
 			}
 		});
 	}
+
+	private void drawMenu()
+	{
+
+		List<Texture> textures = new ArrayList<>();
+		textures.add(AssetLoader.assetManager.get("house.png", Texture.class));
+		textures.add(AssetLoader.assetManager.get("farm.png", Texture.class));
+		textures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
+		textures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
+
+		shapeRenderer.begin();
+		shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
+		shapeRenderer.rect(Gdx.graphics.getWidth() - 80, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
+				Color.valueOf("#42f498"), Color.valueOf("#42f498"), Color.valueOf("#42f498"), Color.valueOf("#42f498"));
+		shapeRenderer.set(ShapeRenderer.ShapeType.Line);
+		shapeRenderer.line(Gdx.graphics.getWidth() - 80, 0, Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight(), Color.BLACK, Color.BLACK);
+
+		int padding = 5;
+		for(int i = 0; i < textures.size(); i++)
+		{
+			//shapeRenderer.line(padding );
+		}
+
+		shapeRenderer.end();
+
+		batch.begin();
+		for(int i = 0; i < textures.size(); i++)
+		{
+			batch.draw(textures.get(i), Gdx.graphics.getWidth() - 80 + padding, Gdx.graphics.getHeight() - (textures.get(i).getHeight() + padding + i * 75), textures.get(i).getWidth(), textures.get(i).getHeight());
+		}
+		batch.end();
+	}
+
 	@Override
 	public void dispose () {
 		batch.dispose();

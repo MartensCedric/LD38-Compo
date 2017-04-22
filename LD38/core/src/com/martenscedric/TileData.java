@@ -115,6 +115,7 @@ public class TileData extends DefaultSatelliteData {
         drawCalls = ++drawCalls % 60;
     }
 
+
     private void renderTileColor(PolygonSpriteBatch poly)
     {
         poly.begin();
