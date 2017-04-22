@@ -30,6 +30,10 @@ public class TileData extends DefaultSatelliteData {
         return texture;
     }
 
+    public Hexagon<TileData> getParent() {
+        return parent;
+    }
+
     public void setTexture(Texture texture) {
         this.texture = texture;
     }

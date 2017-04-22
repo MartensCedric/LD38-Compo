@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -16,6 +17,7 @@ import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -23,13 +25,16 @@ public class LudumDare38 extends ApplicationAdapter {
 	private final int WATER_TILES = 3;
 	private final int GRID_WIDTH = 9;
 	private final int GRID_HEIGHT = 9;
+	private final int MENU_PADDING_Y = 5;
 	private SpriteBatch batch;
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
 	private ShapeRenderer shapeRenderer;
-	private TileType currentCursorSelect = TileType.HOUSE;
+	private TileType currentCursorSelect = null;
 	private ShaderProgram invalidPlacement;
+	private ShaderProgram unlawfulPlacement;
 	private ShaderProgram okPlacement;
+	private List<Texture> menuTextures;
 	
 	@Override
 	public void create () {
@@ -58,6 +63,10 @@ public class LudumDare38 extends ApplicationAdapter {
 		invalidPlacement = new ShaderProgram(vertexShader, redShader);
 		if (!invalidPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + invalidPlacement.getLog());
 
+		String yellowShader = Gdx.files.internal("yellowtrans.fs").readString();
+		unlawfulPlacement = new ShaderProgram(vertexShader, yellowShader);
+		if (!unlawfulPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + unlawfulPlacement.getLog());
+
 		String okShader = Gdx.files.internal("slightlytrans.fs").readString();
 		okPlacement = new ShaderProgram(vertexShader, okShader);
 		if (!okPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + okPlacement.getLog());
@@ -81,13 +90,19 @@ public class LudumDare38 extends ApplicationAdapter {
 		TileData data5 = hex5.getSatelliteData().get();
 		data5.setTileType(TileType.WIND);
 
-		Hexagon<TileData> hex6 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 3)).get();
+		Hexagon<TileData> hex6 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
 		TileData data6 = hex6.getSatelliteData().get();
 		data6.setTileType(TileType.FARM);
 
-		Hexagon<TileData> hex7 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 4)).get();
+		Hexagon<TileData> hex7 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 2)).get();
 		TileData data7 = hex7.getSatelliteData().get();
 		data7.setTileType(TileType.MINE);
+
+		menuTextures = new ArrayList<>();
+		menuTextures.add(AssetLoader.assetManager.get("house.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("farm.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
 	}
 
 	@Override
@@ -138,7 +153,15 @@ public class LudumDare38 extends ApplicationAdapter {
 				if(dataOpt.isPresent())
 				{
 					Hexagon<TileData> data = dataOpt.get();
+					if(currentCursorSelect != null && data.getSatelliteData().get().getTileType() == TileType.GRASS
+							&& isLegal(data.getSatelliteData().get()))
+					{
+						data.getSatelliteData().get().setTileType(currentCursorSelect);
+						currentCursorSelect = null;
+					}
 					System.out.println(data.getCubeCoordinate().toAxialKey() +  " " + data.getSatelliteData().get().getTileType().getName());
+				}else{
+					currentCursorSelect = getMenuItem(screenX, screenY);
 				}
 
 				return true;
@@ -206,12 +229,6 @@ public class LudumDare38 extends ApplicationAdapter {
 	private void drawMenu()
 	{
 
-		List<Texture> textures = new ArrayList<>();
-		textures.add(AssetLoader.assetManager.get("house.png", Texture.class));
-		textures.add(AssetLoader.assetManager.get("farm.png", Texture.class));
-		textures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
-		textures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
-
 		shapeRenderer.begin();
 		shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
 		shapeRenderer.rect(Gdx.graphics.getWidth() - 80, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight(),
@@ -219,18 +236,14 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.set(ShapeRenderer.ShapeType.Line);
 		shapeRenderer.line(Gdx.graphics.getWidth() - 80, 0, Gdx.graphics.getWidth() - 80, Gdx.graphics.getHeight(), Color.BLACK, Color.BLACK);
 
-		int padding = 5;
-		for(int i = 0; i < textures.size(); i++)
-		{
-			//shapeRenderer.line(padding );
-		}
-
 		shapeRenderer.end();
 
 		batch.begin();
-		for(int i = 0; i < textures.size(); i++)
+		for(int i = 0; i < menuTextures.size(); i++)
 		{
-			batch.draw(textures.get(i), Gdx.graphics.getWidth() - 40 - textures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (textures.get(i).getHeight() + padding + i * 75), textures.get(i).getWidth(), textures.get(i).getHeight());
+			batch.draw(menuTextures.get(i),
+					Gdx.graphics.getWidth() - 40 - menuTextures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (menuTextures.get(i).getHeight() + MENU_PADDING_Y + i * 75),
+					menuTextures.get(i).getWidth(), menuTextures.get(i).getHeight());
 		}
 		batch.end();
 	}
@@ -264,7 +277,7 @@ public class LudumDare38 extends ApplicationAdapter {
 				Hexagon<TileData> data = dataOpt.get();
 				batch.begin();
 				if(data.getSatelliteData().get().getTileType() == TileType.GRASS)
-					batch.setShader(okPlacement);
+					batch.setShader(isLegal(data.getSatelliteData().get()) ? okPlacement : unlawfulPlacement);
 				else
 					batch.setShader(invalidPlacement);
 
@@ -273,6 +286,79 @@ public class LudumDare38 extends ApplicationAdapter {
 				batch.end();
 			}
 		}
+	}
+
+	private TileType getMenuItem(int mouseX, int mouseY)
+	{
+		//The entire code of this game is shit but this is probably the worst method
+		for(int i = 0; i < menuTextures.size(); i++)
+		{
+			if(Utils.isInside(mouseX, mouseY, Gdx.graphics.getWidth() - 40 - menuTextures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (menuTextures.get(i).getHeight() + MENU_PADDING_Y + i * 75),
+					Gdx.graphics.getWidth() - 40 + menuTextures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (MENU_PADDING_Y + i * 75)))
+			{
+				switch (i)
+				{
+					case 0:
+						return TileType.HOUSE;
+					case 1:
+						return TileType.FARM;
+					case 2:
+						return TileType.MINE;
+					case 3:
+						return TileType.WIND;
+				}
+			}
+
+		}
+		return null;
+	}
+
+	private boolean isLegal(TileData data)
+	{
+		TileType type = currentCursorSelect;
+		Collection<Hexagon<TileData>> neighbors = grid.getNeighborsOf(data.getParent());
+		boolean farm = false;
+		boolean worker = false;
+		boolean energy = false;
+		switch (type)
+		{
+			case FARM:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getTileType() == TileType.FARM)
+						return false;
+				}
+				return true;
+			case HOUSE:
+
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getTileType() == TileType.FARM)
+						return true;
+				}
+				return false;
+			case WIND:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+						return true;
+				}
+				return false;
+
+			case MINE:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+						worker = true;
+
+					if(tile.getSatelliteData().get().getTileType() == TileType.WIND)
+						energy = true;
+				}
+				return worker && energy;
+		}
+
+
+		return true;
 	}
 
 	@Override
