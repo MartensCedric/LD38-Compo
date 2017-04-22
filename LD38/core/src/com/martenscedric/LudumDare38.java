@@ -10,14 +10,12 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
+import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
-import sun.security.provider.SHA;
-
-import javax.xml.soap.Text;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +28,8 @@ public class LudumDare38 extends ApplicationAdapter {
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
 	private ShapeRenderer shapeRenderer;
+	private TileType currentCursorSelect = TileType.FARM;
+	private ShaderProgram program;
 	
 	@Override
 	public void create () {
@@ -52,6 +52,9 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.setAutoShapeType(true);
 
 		AssetLoader.load();
+		String vertexShader = Gdx.files.internal("defaultvertex.vs").readString();
+		String redShader = Gdx.files.internal("redtrans.fs").readString();
+		program = new ShaderProgram(vertexShader, redShader);
 
 		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 5)).get();
 		TileData data1 = hex1.getSatelliteData().get();
@@ -97,6 +100,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		renderHexs();
 		shapeRenderer.end();
 		drawMenu();
+		drawCursorSelect();
 
 	}
 
@@ -221,9 +225,54 @@ public class LudumDare38 extends ApplicationAdapter {
 		batch.begin();
 		for(int i = 0; i < textures.size(); i++)
 		{
-			batch.draw(textures.get(i), Gdx.graphics.getWidth() - 80 + padding, Gdx.graphics.getHeight() - (textures.get(i).getHeight() + padding + i * 75), textures.get(i).getWidth(), textures.get(i).getHeight());
+			batch.draw(textures.get(i), Gdx.graphics.getWidth() - 40 - textures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (textures.get(i).getHeight() + padding + i * 75), textures.get(i).getWidth(), textures.get(i).getHeight());
 		}
 		batch.end();
+	}
+
+	private void drawCursorSelect()
+	{
+		if(currentCursorSelect !=null)
+		{
+
+			Texture texture = null;
+			switch (currentCursorSelect)
+			{
+				case HOUSE:
+					texture = AssetLoader.assetManager.get("house.png", Texture.class);
+					break;
+				case FARM:
+					texture = AssetLoader.assetManager.get("farm.png", Texture.class);
+					break;
+				case MINE:
+					texture = AssetLoader.assetManager.get("mine.png", Texture.class);
+					break;
+				case WIND:
+					texture = AssetLoader.assetManager.get("wind.png", Texture.class);
+					break;
+			}
+
+			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+
+			if(dataOpt.isPresent())
+			{
+				Hexagon<TileData> data = dataOpt.get();
+
+				if(data.getSatelliteData().get().getTileType() == TileType.GRASS)
+				{
+					batch.begin();
+					batch.draw(texture, (float) (data.getCenterX() - texture.getWidth()/2), (float) (data.getCenterY() - texture.getHeight()/2));
+					batch.end();
+				}else{
+
+					batch.begin();
+					batch.setShader(program);
+					batch.draw(texture, (float) (data.getCenterX() - texture.getWidth()/2), (float) (data.getCenterY() - texture.getHeight()/2));
+					batch.setShader(null);
+					batch.end();
+				}
+			}
+		}
 	}
 
 	@Override
