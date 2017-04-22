@@ -8,7 +8,6 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
-import com.badlogic.gdx.graphics.g3d.Shader;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.utils.GdxRuntimeException;
@@ -26,6 +25,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	private final int GRID_WIDTH = 9;
 	private final int GRID_HEIGHT = 9;
 	private final int MENU_PADDING_Y = 10;
+
 	private SpriteBatch batch;
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
@@ -35,6 +35,8 @@ public class LudumDare38 extends ApplicationAdapter {
 	private ShaderProgram unlawfulPlacement;
 	private ShaderProgram okPlacement;
 	private List<Texture> menuTextures;
+	private String scoreText = "SCORE : %d";
+	private int score = 0;
 	
 	@Override
 	public void create () {
@@ -115,7 +117,8 @@ public class LudumDare38 extends ApplicationAdapter {
 			hex.getSatelliteData().get().draw(polyBatch, batch);
 		});
 		batch.begin();
-
+		calculateScore();
+		AssetLoader.getFont().draw(batch, String.format(scoreText, score), 5,25);
 		batch.end();
 		shapeRenderer.begin();
 		renderHexs();
@@ -357,11 +360,8 @@ public class LudumDare38 extends ApplicationAdapter {
 				{
 					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
 						worker = true;
-
-					if(tile.getSatelliteData().get().getTileType() == TileType.WIND)
-						energy = true;
 				}
-				return worker && energy;
+				return worker;
 			case FACTORY:
 				for(Hexagon<TileData> tile : neighbors)
 				{
@@ -379,6 +379,28 @@ public class LudumDare38 extends ApplicationAdapter {
 
 
 		return true;
+	}
+
+	private void calculateScore()
+	{
+		final int[] tempScore = {0};
+		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
+		hexagons.forEach(hex -> {
+			TileType type = hex.getSatelliteData().get().getTileType();
+			switch (type)
+			{
+				case FARM:
+					tempScore[0]--;
+				break;
+				case MINE:
+					tempScore[0]++;
+					break;
+				case FACTORY:
+					tempScore[0]+=2;
+				break;
+			}
+		});
+		score = tempScore[0];
 	}
 
 	@Override
