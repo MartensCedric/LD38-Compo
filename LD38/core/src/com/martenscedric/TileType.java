@@ -5,22 +5,24 @@ package com.martenscedric;
  */
 public enum TileType
 {
-    GRASS("Grass", "An empty area"),
-    WATER("Water", "Wet"),
-    HOUSE("Worker house", "Provides a worker to every adjacent tile"),
-    FARM("Farm", "Provides food to every adjacent tile and produces a small amount of resources."),
-    MINE("Mine", "Provides minerals to every adjacent tiles. Needs a worker"),
-    WIND("Wind turbine", "Produces energy to every adjacent tile"),
-    FACTORY("Factory", "Produces consumer goods to every adjacent tile. Needs a worker, energy and minerals"),
-    BANK("Bank", "Produces money");
+    GRASS("Grass", "An empty area", 0),
+    WATER("Water", "Wet", 0),
+    HOUSE("Worker house", "Provides a worker to every adjacent tile. Needs an adjacent food source.", -1),
+    FARM("Farm", "Provides food to every adjacent tile. Cannot be placed next to another farm.", -1),
+    MINE("Mine", "Provides minerals to every adjacent tiles. Needs a worker", 1),
+    WIND("Wind turbine", "Produces energy to every adjacent tile. Needs a worker.", 1),
+    FACTORY("Factory", "Produces consumer goods to every adjacent tile. Needs a worker, energy and minerals", 2),
+    BANK("Bank", "Produces money", 3);
 
     private String name;
     private String desc;
+    private int score;
 
-    TileType(String name, String desc)
+    TileType(String name, String desc, int score)
     {
         this.name = name;
         this.desc = desc;
+        this.score = score;
     }
 
     public String getName() {
@@ -29,5 +31,9 @@ public enum TileType
 
     public String getDesc() {
         return desc;
+    }
+
+    public int getScore() {
+        return score;
     }
 }

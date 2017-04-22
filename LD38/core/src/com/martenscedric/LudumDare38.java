@@ -6,10 +6,16 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
@@ -37,10 +43,17 @@ public class LudumDare38 extends ApplicationAdapter {
 	private List<Texture> menuTextures;
 	private String scoreText = "SCORE : %d";
 	private int score = 0;
+	private Stage stage;
+	private WidgetGroup group;
+	private TextButton labelToolTip;
 	
 	@Override
 	public void create () {
 
+		stage = new Stage();
+		group = new WidgetGroup();
+		stage.addActor(group);
+		createToolTip();
 		batch = new SpriteBatch();
 		polyBatch = new PolygonSpriteBatch();
 
@@ -125,7 +138,10 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.end();
 		drawMenu();
 		drawCursorSelect();
-
+		TileType hoverItem = getMenuItem(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+		if(hoverItem != null)
+			displayToolTip(hoverItem);
+		else labelToolTip.setVisible(false);
 	}
 
 	private void initInput()
@@ -387,20 +403,43 @@ public class LudumDare38 extends ApplicationAdapter {
 		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
 		hexagons.forEach(hex -> {
 			TileType type = hex.getSatelliteData().get().getTileType();
-			switch (type)
-			{
-				case FARM:
-					tempScore[0]--;
-				break;
-				case MINE:
-					tempScore[0]++;
-					break;
-				case FACTORY:
-					tempScore[0]+=2;
-				break;
-			}
+			tempScore[0]+= type.getScore();
 		});
 		score = tempScore[0];
+	}
+
+	private void displayToolTip(TileType type)
+	{
+		labelToolTip.setText(type.getName() + "\n\n" + "Modifies score by " + type.getScore() + "\n\n" + type.getDesc());
+		labelToolTip.setX(Gdx.input.getX() - 125);
+		labelToolTip.setY(Gdx.graphics.getHeight() - Gdx.input.getY() - labelToolTip.getLabel().getHeight());
+		labelToolTip.setHeight(labelToolTip.getLabel().getHeight());
+		labelToolTip.setVisible(true);
+		stage.draw();
+	}
+
+	private void createToolTip()
+	{
+		Skin skin = new Skin();
+		Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+		pixmap.setColor(Color.WHITE);
+		pixmap.fill();
+		skin.add("white", new Texture(pixmap));
+		skin.add("default", new BitmapFont());
+
+		TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+		textButtonStyle.up = skin.newDrawable("white", new Color(0, 0, 0, 1));
+		textButtonStyle.font = skin.getFont("default");
+		skin.add("default", textButtonStyle);
+
+		labelToolTip = new TextButton("TEST", skin);
+		labelToolTip.setX(5);
+		labelToolTip.setY(5);
+		labelToolTip.setWidth(125);
+		labelToolTip.setVisible(false);
+		labelToolTip.getLabel().setWrap(true);
+		labelToolTip.setHeight(labelToolTip.getLabel().getHeight());
+		group.addActor(labelToolTip);
 	}
 
 	@Override

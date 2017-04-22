@@ -25,10 +25,8 @@ public class AssetLoader
         assetManager.finishLoading();
     }
 
-    public static BitmapFont getFont()
-    {
-        if(font == null)
-        {
+    public static BitmapFont getFont() {
+        if (font == null) {
             FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("VCROSDMono.ttf"));
             FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
             parameter.size = 30;
