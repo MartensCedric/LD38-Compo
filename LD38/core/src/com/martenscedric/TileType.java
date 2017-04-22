@@ -5,35 +5,32 @@ package com.martenscedric;
  */
 public enum TileType
 {
-    GRASS("Grass", "An empty area", 0),
-    WATER("Water", "Wet", 0),
-    HOUSE("Worker house", "Provides a worker to every adjacent tile. Needs an adjacent food source.", -1),
-    FARM("Farm", "Provides food to every adjacent tile. Cannot be placed next to another farm.", -1),
-    MINE("Mine", "Provides minerals to every adjacent tiles. Needs a worker", 1),
-    WIND("Wind turbine", "Produces energy to every adjacent tile. Needs a worker.", 1),
-    FACTORY("Factory", "Produces consumer goods to every adjacent tile. Needs a worker, energy and minerals", 2),
-    BANK("Bank", "Produces money", 3);
+    GRASS("Grass", 1, 0x11FF38FF),
+    WATER("Water", 1, 0x4286F4FF),
+    SAND("Sand", 0, 0xe8d17fFF),
+    FOREST("Forest", 2, 0x284919FF);
+
 
     private String name;
-    private String desc;
-    private int score;
+    private int multiplier;
+    private int color;
 
-    TileType(String name, String desc, int score)
+    TileType(String name, int multiplier, int color)
     {
         this.name = name;
-        this.desc = desc;
-        this.score = score;
+        this.multiplier = multiplier;
+        this.color = color;
     }
 
     public String getName() {
         return name;
     }
 
-    public String getDesc() {
-        return desc;
+    public int getMultiplier() {
+        return multiplier;
     }
 
-    public int getScore() {
-        return score;
+    public int getColor() {
+        return color;
     }
 }

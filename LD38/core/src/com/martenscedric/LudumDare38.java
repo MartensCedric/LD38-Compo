@@ -12,7 +12,6 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
@@ -36,7 +35,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
 	private ShapeRenderer shapeRenderer;
-	private TileType currentCursorSelect = null;
+	private BuildingType currentCursorSelect = null;
 	private ShaderProgram invalidPlacement;
 	private ShaderProgram unlawfulPlacement;
 	private ShaderProgram okPlacement;
@@ -66,7 +65,6 @@ public class LudumDare38 extends ApplicationAdapter {
 
 		grid = builder.build();
 		initHexData();
-		fillHexs();
 		initInput();
 		shapeRenderer = new ShapeRenderer();
 		shapeRenderer.setAutoShapeType(true);
@@ -99,19 +97,45 @@ public class LudumDare38 extends ApplicationAdapter {
 
 		Hexagon<TileData> hex4 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 2)).get();
 		TileData data4 = hex4.getSatelliteData().get();
-		data4.setTileType(TileType.HOUSE);
+		data4.setBuilding(BuildingType.HOUSE);
 
 		Hexagon<TileData> hex5 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 3)).get();
 		TileData data5 = hex5.getSatelliteData().get();
-		data5.setTileType(TileType.WIND);
+		data5.setBuilding(BuildingType.WIND);
 
 		Hexagon<TileData> hex6 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
 		TileData data6 = hex6.getSatelliteData().get();
-		data6.setTileType(TileType.FARM);
+		data6.setBuilding(BuildingType.FARM);
 
 		Hexagon<TileData> hex7 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 2)).get();
 		TileData data7 = hex7.getSatelliteData().get();
-		data7.setTileType(TileType.MINE);
+		data7.setBuilding(BuildingType.MINE);
+
+		Hexagon<TileData> hex8 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(1, 4)).get();
+		TileData data8 = hex8.getSatelliteData().get();
+		data8.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex9 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(6, 3)).get();
+		TileData data9 = hex9.getSatelliteData().get();
+		data9.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex10 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, -1)).get();
+		TileData data10 = hex10.getSatelliteData().get();
+		data10.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex11 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, -2)).get();
+		TileData data11 = hex11.getSatelliteData().get();
+		data11.setTileType(TileType.FOREST);
+
+		Hexagon<TileData> hex12 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(0, 6)).get();
+		TileData data12 = hex12.getSatelliteData().get();
+		data12.setTileType(TileType.FOREST);
+
+		Hexagon<TileData> hex13 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(8, 2)).get();
+		TileData data13 = hex13.getSatelliteData().get();
+		data13.setTileType(TileType.FOREST);
+
+
 
 		menuTextures = new ArrayList<>();
 		menuTextures.add(AssetLoader.assetManager.get("house.png", Texture.class));
@@ -138,7 +162,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		shapeRenderer.end();
 		drawMenu();
 		drawCursorSelect();
-		TileType hoverItem = getMenuItem(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+		BuildingType hoverItem = getMenuItem(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
 		if(hoverItem != null)
 			displayToolTip(hoverItem);
 		else labelToolTip.setVisible(false);
@@ -173,10 +197,10 @@ public class LudumDare38 extends ApplicationAdapter {
 				if(dataOpt.isPresent())
 				{
 					Hexagon<TileData> data = dataOpt.get();
-					if(currentCursorSelect != null && data.getSatelliteData().get().getTileType() == TileType.GRASS
+					if(currentCursorSelect != null && data.getSatelliteData().get().getTileType() != TileType.WATER
 							&& isLegal(data.getSatelliteData().get()))
 					{
-						data.getSatelliteData().get().setTileType(currentCursorSelect);
+						data.getSatelliteData().get().setBuilding(currentCursorSelect);
 						currentCursorSelect = null;
 					}
 					System.out.println(data.getCubeCoordinate().toAxialKey() +  " " + data.getSatelliteData().get().getTileType().getName());
@@ -215,15 +239,6 @@ public class LudumDare38 extends ApplicationAdapter {
 		hexagons.forEach(hex -> {
 			hex.setSatelliteData(new TileData(hex));
 		});
-	}
-
-	private void fillHexs()
-	{
-		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
-		hexagons.forEach(hex -> {
-			TileData data = hex.getSatelliteData().get();
-    		data.setTileType(TileType.GRASS);
-        });
 	}
 
 	private void renderHexs()
@@ -299,7 +314,7 @@ public class LudumDare38 extends ApplicationAdapter {
 			{
 				Hexagon<TileData> data = dataOpt.get();
 				batch.begin();
-				if(data.getSatelliteData().get().getTileType() == TileType.GRASS)
+				if(data.getSatelliteData().get().getTileType() != TileType.WATER)
 					batch.setShader(isLegal(data.getSatelliteData().get()) ? okPlacement : unlawfulPlacement);
 				else
 					batch.setShader(invalidPlacement);
@@ -311,7 +326,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		}
 	}
 
-	private TileType getMenuItem(int mouseX, int mouseY)
+	private BuildingType getMenuItem(int mouseX, int mouseY)
 	{
 		//The entire code of this game is shit but this is probably the worst method
 		for(int i = 0; i < menuTextures.size(); i++)
@@ -319,19 +334,7 @@ public class LudumDare38 extends ApplicationAdapter {
 			if(Utils.isInside(mouseX, mouseY, Gdx.graphics.getWidth() - 40 - menuTextures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (menuTextures.get(i).getHeight() + MENU_PADDING_Y + i * 75),
 					Gdx.graphics.getWidth() - 40 + menuTextures.get(i).getWidth()/2, Gdx.graphics.getHeight() - (MENU_PADDING_Y + i * 75)))
 			{
-				switch (i)
-				{
-					case 0:
-						return TileType.HOUSE;
-					case 1:
-						return TileType.FARM;
-					case 2:
-						return TileType.MINE;
-					case 3:
-						return TileType.WIND;
-					case 4:
-						return TileType.FACTORY;
-				}
+				return BuildingType.values()[i + 1];
 			}
 
 		}
@@ -340,7 +343,7 @@ public class LudumDare38 extends ApplicationAdapter {
 
 	private boolean isLegal(TileData data)
 	{
-		TileType type = currentCursorSelect;
+		BuildingType type = currentCursorSelect;
 		Collection<Hexagon<TileData>> neighbors = grid.getNeighborsOf(data.getParent());
 		boolean farm = false;
 		boolean worker = false;
@@ -351,7 +354,7 @@ public class LudumDare38 extends ApplicationAdapter {
 			case FARM:
 				for(Hexagon<TileData> tile : neighbors)
 				{
-					if(tile.getSatelliteData().get().getTileType() == TileType.FARM)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.FARM)
 						return false;
 				}
 				return true;
@@ -359,14 +362,14 @@ public class LudumDare38 extends ApplicationAdapter {
 
 				for(Hexagon<TileData> tile : neighbors)
 				{
-					if(tile.getSatelliteData().get().getTileType() == TileType.FARM)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.FARM)
 						return true;
 				}
 				return false;
 			case WIND:
 				for(Hexagon<TileData> tile : neighbors)
 				{
-					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
 						return true;
 				}
 				return false;
@@ -374,20 +377,20 @@ public class LudumDare38 extends ApplicationAdapter {
 			case MINE:
 				for(Hexagon<TileData> tile : neighbors)
 				{
-					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
 						worker = true;
 				}
 				return worker;
 			case FACTORY:
 				for(Hexagon<TileData> tile : neighbors)
 				{
-					if(tile.getSatelliteData().get().getTileType() == TileType.HOUSE)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
 						worker = true;
 
-					if(tile.getSatelliteData().get().getTileType() == TileType.WIND)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.WIND)
 						energy = true;
 
-					if(tile.getSatelliteData().get().getTileType() == TileType.MINE)
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.MINE)
 						mineral = true;
 				}
 				return worker && energy && mineral;
@@ -402,13 +405,14 @@ public class LudumDare38 extends ApplicationAdapter {
 		final int[] tempScore = {0};
 		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
 		hexagons.forEach(hex -> {
-			TileType type = hex.getSatelliteData().get().getTileType();
-			tempScore[0]+= type.getScore();
+			TileType tileType = hex.getSatelliteData().get().getTileType();
+			BuildingType buildingType = hex.getSatelliteData().get().getBuildingType();
+			tempScore[0]+= buildingType.getScore() * tileType.getMultiplier();
 		});
 		score = tempScore[0];
 	}
 
-	private void displayToolTip(TileType type)
+	private void displayToolTip(BuildingType type)
 	{
 		labelToolTip.setText(type.getName() + "\n\n" + "Modifies score by " + type.getScore() + "\n\n" + type.getDesc());
 		labelToolTip.setX(Gdx.input.getX() - 125);

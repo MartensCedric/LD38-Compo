@@ -15,6 +15,7 @@ import org.codetome.hexameter.core.api.defaults.DefaultSatelliteData;
  */
 public class TileData extends DefaultSatelliteData {
     private TileType tileType;
+    private BuildingType buildingType;
     private PolygonSprite sprite;
     private Texture texture;
     private Hexagon<TileData> parent;
@@ -24,6 +25,8 @@ public class TileData extends DefaultSatelliteData {
     public TileData(Hexagon<TileData> parent)
     {
         this.parent = parent;
+        setTileType(TileType.GRASS);
+        setBuilding(BuildingType.NONE);
     }
 
     public Texture getTexture() {
@@ -40,6 +43,10 @@ public class TileData extends DefaultSatelliteData {
 
     public PolygonSprite getSprite() {
         return sprite;
+    }
+
+    public BuildingType getBuildingType() {
+        return buildingType;
     }
 
     public void setColor(int color) {
@@ -69,21 +76,21 @@ public class TileData extends DefaultSatelliteData {
         sprite = new PolygonSprite(polygonRegion);
     }
 
+    public void setTileType(TileType tileType)
+    {
+        this.tileType = tileType;
+        setColor(tileType.getColor());
+    }
+
     public TileType getTileType() {
         return tileType;
     }
 
-    public void setTileType(TileType tileType) {
-        this.tileType = tileType;
+    public void setBuilding(BuildingType buildingType) {
+        this.buildingType = buildingType;
 
-        switch (tileType)
+        switch (buildingType)
         {
-            case GRASS:
-                setColor(0x11FF38FF);
-                break;
-            case WATER:
-                setColor(0x4286F4FF);
-                break;
             case HOUSE:
                 setTexture(AssetLoader.assetManager.get("house.png", Texture.class));
                 break;
@@ -99,18 +106,20 @@ public class TileData extends DefaultSatelliteData {
             case FACTORY:
                 setTexture(AssetLoader.assetManager.get("factory.png", Texture.class));
                 break;
+            case NONE:
+                setTexture(null);
+                break;
         }
     }
 
     public void draw(PolygonSpriteBatch poly, SpriteBatch batch)
     {
-        if (tileType == TileType.WATER ||
-                tileType == tileType.GRASS)
+        if (buildingType == BuildingType.NONE)
         {
             renderTileColor(poly);
         }else{
             renderTileColor(poly);
-            if(tileType == TileType.WIND)
+            if(buildingType == buildingType.WIND)
             {
                 tileFlipped = drawCalls < 30;
                 renderTileSprite(batch, tileFlipped);
