@@ -143,6 +143,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		menuTextures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("factory.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("market.png", Texture.class));
 	}
 
 	@Override
@@ -306,6 +307,9 @@ public class LudumDare38 extends ApplicationAdapter {
 				case FACTORY:
 					texture = AssetLoader.assetManager.get("factory.png", Texture.class);
 					break;
+				case MARKET:
+					texture = AssetLoader.assetManager.get("market.png", Texture.class);
+					break;
 			}
 
 			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
@@ -349,6 +353,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		boolean worker = false;
 		boolean energy = false;
 		boolean mineral = false;
+		boolean consumerGoods = false;
 		switch (type)
 		{
 			case FARM:
@@ -394,6 +399,19 @@ public class LudumDare38 extends ApplicationAdapter {
 						mineral = true;
 				}
 				return worker && energy && mineral;
+			case MARKET:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
+						worker = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.WIND)
+						energy = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.FACTORY)
+						consumerGoods = true;
+				}
+				return worker && energy && consumerGoods;
 		}
 
 

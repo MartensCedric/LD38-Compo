@@ -11,7 +11,7 @@ public enum  BuildingType
     MINE("Mine", "Provides minerals to every adjacent tiles. Needs a worker", 1),
     WIND("Wind turbine", "Produces energy to every adjacent tile. Needs a worker.", 1),
     FACTORY("Factory", "Produces consumer goods to every adjacent tile. Needs a worker, energy and minerals", 2),
-    BANK("Bank", "Produces money", 3);
+    MARKET("Market", "Produces trade to every adjacent tile. Needs a worker, energy and a factory", 3);
 
     private String name;
     private String desc;
