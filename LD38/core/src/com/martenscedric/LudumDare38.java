@@ -11,25 +11,19 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.scenes.scene2d.Actor;
-import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
-import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
-import rx.functions.Action1;
-
-import javax.xml.soap.Text;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Random;
 
 
 public class LudumDare38 extends ApplicationAdapter {
@@ -37,7 +31,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	private final int GRID_WIDTH = 9;
 	private final int GRID_HEIGHT = 9;
 	private final int MENU_PADDING_Y = 10;
-
+	private final int START_CLOUDS_COUNT = 8;
 	private SpriteBatch batch;
 	private PolygonSpriteBatch polyBatch;
 	private HexagonalGrid<TileData> grid;
@@ -53,6 +47,9 @@ public class LudumDare38 extends ApplicationAdapter {
 	private WidgetGroup group;
 	private TextButton btnReset;
 	private TextButton labelToolTip;
+	List<Coord> clouds = new ArrayList<>();
+
+	private static Random r = new Random();
 	
 	@Override
 	public void create () {
@@ -103,12 +100,47 @@ public class LudumDare38 extends ApplicationAdapter {
 		menuTextures.add(AssetLoader.assetManager.get("factory.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("market.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("bank.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("rocket.png", Texture.class));
+
+		for(int i = 0; i < START_CLOUDS_COUNT; i++)
+		{
+			Coord c = new Coord();
+			c.x = r.nextInt() % Gdx.graphics.getWidth();
+			c.y = r.nextInt() % Gdx.graphics.getHeight();
+			clouds.add(c);
+		}
 	}
 
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(66f/255f, 206f/255f, 244f/255f, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+
+		if(r.nextInt() % 200 == 0)
+		{
+			Coord c = new Coord();
+			c.x = -((Texture)AssetLoader.assetManager.get("cloud.png")).getWidth();
+			c.y = r.nextInt() % Gdx.graphics.getHeight();
+			clouds.add(c);
+		}
+		batch.begin();
+		Texture cloudTex = AssetLoader.assetManager.get("cloud.png", Texture.class);
+		for(int i = 0; i < clouds.size(); i++)
+		{
+			Coord c = clouds.get(i);
+
+			if(c.x > Gdx.graphics.getWidth())
+			{
+				clouds.remove(i);
+				i--;
+			}else{
+				c.x += 0.25f;
+				batch.draw(cloudTex, c.x, c.y);
+			}
+		}
+		batch.end();
+
 		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
 		hexagons.forEach(hex -> {
 			hex.getSatelliteData().get().draw(polyBatch, batch);
@@ -284,6 +316,9 @@ public class LudumDare38 extends ApplicationAdapter {
 				case BANK:
 					texture = AssetLoader.assetManager.get("bank.png", Texture.class);
 					break;
+				case ROCKET:
+					texture = AssetLoader.assetManager.get("rocket.png", Texture.class);
+					break;
 			}
 
 			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
@@ -404,6 +439,22 @@ public class LudumDare38 extends ApplicationAdapter {
 						mineral = true;
 				}
 				return worker && trade && energy && mineral;
+			case ROCKET:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
+						worker = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.WIND)
+						energy = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.BANK)
+						wealth = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.FACTORY)
+						consumerGoods = true;
+				}
+				return worker && wealth && energy && consumerGoods;
 		}
 
 

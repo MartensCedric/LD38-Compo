@@ -24,6 +24,8 @@ public class AssetLoader
         assetManager.load("factory.png", Texture.class);
         assetManager.load("market.png", Texture.class);
         assetManager.load("bank.png", Texture.class);
+        assetManager.load("rocket.png", Texture.class);
+        assetManager.load("cloud.png", Texture.class);
         assetManager.finishLoading();
     }
 
@@ -39,7 +41,6 @@ public class AssetLoader
             parameter.shadowColor = new Color(0, 1f, 0, 0.5f);
             font = generator.generateFont(parameter);
             generator.dispose();
-
         }
         return font;
     }

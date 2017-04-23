@@ -112,6 +112,9 @@ public class TileData extends DefaultSatelliteData {
             case BANK:
                 setTexture(AssetLoader.assetManager.get("bank.png", Texture.class));
                 break;
+            case ROCKET:
+                setTexture(AssetLoader.assetManager.get("rocket.png", Texture.class));
+                break;
             case NONE:
                 setTexture(null);
                 break;
