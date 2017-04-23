@@ -119,7 +119,7 @@ public class LudumDare38 extends ApplicationAdapter {
                     		new BufferedInputStream(
                             	new FileInputStream(new File(saveFile)))).readInt();
 		} catch (FileNotFoundException e) {
-			e.printStackTrace();
+			System.err.println("Could not locate file : " + saveFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
