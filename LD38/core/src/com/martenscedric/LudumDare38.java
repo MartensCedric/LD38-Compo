@@ -16,10 +16,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import org.apache.commons.io.FileUtils;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
+
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +45,10 @@ public class LudumDare38 extends ApplicationAdapter {
 	private ShaderProgram okPlacement;
 	private List<Texture> menuTextures;
 	private String scoreText = "SCORE : %d";
+	private String highScoreText = "BEST  : %d";
 	private int score = 0;
+	private int highscore = 0;
+	private String saveFile = "highscore.hexsav";
 	private Stage stage;
 	private WidgetGroup group;
 	private TextButton btnReset;
@@ -54,6 +60,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	@Override
 	public void create () {
 
+		loadHighScore();
 		stage = new Stage();
 		group = new WidgetGroup();
 		stage.addActor(group);
@@ -111,6 +118,19 @@ public class LudumDare38 extends ApplicationAdapter {
 		}
 	}
 
+	private void loadHighScore() {
+
+		try {
+			highscore = new DataInputStream(
+                    		new BufferedInputStream(
+                            	new FileInputStream(new File(saveFile)))).readInt();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 	@Override
 	public void render () {
 		Gdx.gl.glClearColor(66f/255f, 206f/255f, 244f/255f, 1);
@@ -147,6 +167,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		});
 		batch.begin();
 		calculateScore();
+		AssetLoader.getFont().draw(batch, String.format(highScoreText, highscore), 5,55);
 		AssetLoader.getFont().draw(batch, String.format(scoreText, score), 5,25);
 		batch.end();
 		shapeRenderer.begin();
@@ -471,6 +492,22 @@ public class LudumDare38 extends ApplicationAdapter {
 			tempScore[0]+= buildingType.getScore() * tileType.getMultiplier();
 		});
 		score = tempScore[0];
+
+		if(score > highscore)
+		{
+			highscore = score;
+			DataOutputStream os = null;
+			try {
+				os = new DataOutputStream(new FileOutputStream(saveFile));
+			os.writeInt(highscore);
+			os.close();
+
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private void displayToolTip(BuildingType type)
