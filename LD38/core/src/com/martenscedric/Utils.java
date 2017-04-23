@@ -20,4 +20,20 @@ public class Utils
         return (float) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
     }
 
+    public static String getAppDataPath()
+    {
+        String osName = System.getProperty("os.name").toUpperCase();
+
+        if(osName.contains("WIN"))
+            return System.getenv("APPDATA");
+
+        if(osName.contains("MAC"))
+            return System.getProperty("user.home") + "/Library/Application Support";
+
+        if(osName.contains("NUX"))
+            return System.getProperty("user.home") + "/.config";
+
+        return System.getProperty("user.dir");
+    }
+
 }

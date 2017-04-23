@@ -16,6 +16,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.utils.GdxRuntimeException;
+import org.apache.commons.io.FileUtils;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
@@ -117,9 +118,11 @@ public class LudumDare38 extends ApplicationAdapter {
 		try {
 			highscore = new DataInputStream(
                     		new BufferedInputStream(
-                            	new FileInputStream(new File(saveFile)))).readInt();
+                            	new FileInputStream(new File(Utils.getAppDataPath() + "/HexCity/" + saveFile)))).readInt();
 		} catch (FileNotFoundException e) {
 			System.err.println("Could not locate file : " + saveFile);
+			File f = new File(Utils.getAppDataPath() + "/HexCity");
+			f.mkdir();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -534,7 +537,7 @@ public class LudumDare38 extends ApplicationAdapter {
 			highscore = score;
 			DataOutputStream os = null;
 			try {
-				os = new DataOutputStream(new FileOutputStream(saveFile));
+				os = new DataOutputStream(new FileOutputStream(Utils.getAppDataPath() + "/HexCity/" + saveFile));
 			os.writeInt(highscore);
 			os.close();
 
