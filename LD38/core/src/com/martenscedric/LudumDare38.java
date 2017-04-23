@@ -175,6 +175,17 @@ public class LudumDare38 extends ApplicationAdapter {
 		else
 		{
 			labelToolTip.setVisible(false);
+
+			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
+
+			if(dataOpt.isPresent())
+			{
+				TileType type = dataOpt.get().getSatelliteData().get().getTileType();
+				if(type != TileType.GRASS)
+				{
+					displayToolTip(type);
+				}
+			}
 		}
 		stage.act();
 		stage.draw();
@@ -521,9 +532,21 @@ public class LudumDare38 extends ApplicationAdapter {
 	private void displayToolTip(BuildingType type)
 	{
 		labelToolTip.setText(type.getName() + "\n\n" + "Modifies score by " + type.getScore() + "\n\n" + type.getDesc());
-		labelToolTip.setX(Gdx.input.getX() - 125);
-		labelToolTip.setY(Gdx.graphics.getHeight() - Gdx.input.getY() - labelToolTip.getLabel().getHeight());
-		labelToolTip.setHeight(labelToolTip.getLabel().getHeight());
+
+		labelToolTip.setX(Gdx.input.getX() < Gdx.graphics.getWidth()/2 ? Gdx.input.getX() : Gdx.input.getX() - labelToolTip.getWidth());
+		labelToolTip.setY(Gdx.input.getY() < Gdx.graphics.getHeight()/2 ?
+				Gdx.graphics.getHeight() - Gdx.input.getY() - labelToolTip.getLabel().getHeight() : Gdx.graphics.getHeight() - Gdx.input.getY());
+		labelToolTip.setHeight(labelToolTip.getLabel().getPrefHeight());
+		labelToolTip.setVisible(true);
+	}
+
+	private void displayToolTip(TileType type)
+	{
+		labelToolTip.setText(type.getName() + "\n\n" + type.getDesc());
+		labelToolTip.setX(Gdx.input.getX() < Gdx.graphics.getWidth()/2 ? Gdx.input.getX() : Gdx.input.getX() - labelToolTip.getWidth());
+		labelToolTip.setY(Gdx.input.getY() < Gdx.graphics.getHeight()/2 ?
+				Gdx.graphics.getHeight() - Gdx.input.getY() - labelToolTip.getLabel().getHeight() : Gdx.graphics.getHeight() - Gdx.input.getY());
+		labelToolTip.setHeight(labelToolTip.getLabel().getPrefHeight());
 		labelToolTip.setVisible(true);
 	}
 
