@@ -102,6 +102,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		menuTextures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("factory.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("market.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("bank.png", Texture.class));
 	}
 
 	@Override
@@ -167,7 +168,6 @@ public class LudumDare38 extends ApplicationAdapter {
 						data.getSatelliteData().get().setBuilding(currentCursorSelect);
 						currentCursorSelect = null;
 					}
-					System.out.println(data.getCubeCoordinate().toAxialKey() +  " " + data.getSatelliteData().get().getTileType().getName());
 				}else{
 					if(Utils.isInside(screenX, screenY,
 							btnReset.getX(), btnReset.getY(),
@@ -281,6 +281,9 @@ public class LudumDare38 extends ApplicationAdapter {
 				case MARKET:
 					texture = AssetLoader.assetManager.get("market.png", Texture.class);
 					break;
+				case BANK:
+					texture = AssetLoader.assetManager.get("bank.png", Texture.class);
+					break;
 			}
 
 			Optional<Hexagon<TileData>> dataOpt = grid.getByPixelCoordinate(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
@@ -325,6 +328,8 @@ public class LudumDare38 extends ApplicationAdapter {
 		boolean energy = false;
 		boolean mineral = false;
 		boolean consumerGoods = false;
+		boolean trade = false;
+		boolean wealth = false;
 		switch (type)
 		{
 			case FARM:
@@ -383,6 +388,22 @@ public class LudumDare38 extends ApplicationAdapter {
 						consumerGoods = true;
 				}
 				return worker && energy && consumerGoods;
+			case BANK:
+				for(Hexagon<TileData> tile : neighbors)
+				{
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.HOUSE)
+						worker = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.WIND)
+						energy = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.MARKET)
+						trade = true;
+
+					if(tile.getSatelliteData().get().getBuildingType() == BuildingType.MINE)
+						mineral = true;
+				}
+				return worker && trade && energy && mineral;
 		}
 
 
