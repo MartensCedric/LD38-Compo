@@ -11,22 +11,29 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.graphics.glutils.ShaderProgram;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.GdxRuntimeException;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
+import rx.functions.Action1;
+
+import javax.xml.soap.Text;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 
 public class LudumDare38 extends ApplicationAdapter {
-	private final int WATER_TILES = 3;
+
 	private final int GRID_WIDTH = 9;
 	private final int GRID_HEIGHT = 9;
 	private final int MENU_PADDING_Y = 10;
@@ -44,6 +51,7 @@ public class LudumDare38 extends ApplicationAdapter {
 	private int score = 0;
 	private Stage stage;
 	private WidgetGroup group;
+	private TextButton btnReset;
 	private TextButton labelToolTip;
 	
 	@Override
@@ -53,6 +61,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		group = new WidgetGroup();
 		stage.addActor(group);
 		createToolTip();
+		createResetButton();
 		batch = new SpriteBatch();
 		polyBatch = new PolygonSpriteBatch();
 
@@ -83,59 +92,8 @@ public class LudumDare38 extends ApplicationAdapter {
 		String okShader = Gdx.files.internal("slightlytrans.fs").readString();
 		okPlacement = new ShaderProgram(vertexShader, okShader);
 		if (!okPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + okPlacement.getLog());
-		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 5)).get();
-		TileData data1 = hex1.getSatelliteData().get();
-		data1.setTileType(TileType.WATER);
 
-		Hexagon<TileData> hex2 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(2, 1)).get();
-		TileData data2 = hex2.getSatelliteData().get();
-		data2.setTileType(TileType.WATER);
-
-		Hexagon<TileData> hex3 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(7, 0)).get();
-		TileData data3 = hex3.getSatelliteData().get();
-		data3.setTileType(TileType.WATER);
-
-		Hexagon<TileData> hex4 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 2)).get();
-		TileData data4 = hex4.getSatelliteData().get();
-		data4.setBuilding(BuildingType.HOUSE);
-
-		Hexagon<TileData> hex5 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 3)).get();
-		TileData data5 = hex5.getSatelliteData().get();
-		data5.setBuilding(BuildingType.WIND);
-
-		Hexagon<TileData> hex6 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
-		TileData data6 = hex6.getSatelliteData().get();
-		data6.setBuilding(BuildingType.FARM);
-
-		Hexagon<TileData> hex7 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 2)).get();
-		TileData data7 = hex7.getSatelliteData().get();
-		data7.setBuilding(BuildingType.MINE);
-
-		Hexagon<TileData> hex8 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(1, 4)).get();
-		TileData data8 = hex8.getSatelliteData().get();
-		data8.setTileType(TileType.SAND);
-
-		Hexagon<TileData> hex9 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(6, 3)).get();
-		TileData data9 = hex9.getSatelliteData().get();
-		data9.setTileType(TileType.SAND);
-
-		Hexagon<TileData> hex10 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, -1)).get();
-		TileData data10 = hex10.getSatelliteData().get();
-		data10.setTileType(TileType.SAND);
-
-		Hexagon<TileData> hex11 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, -2)).get();
-		TileData data11 = hex11.getSatelliteData().get();
-		data11.setTileType(TileType.FOREST);
-
-		Hexagon<TileData> hex12 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(0, 6)).get();
-		TileData data12 = hex12.getSatelliteData().get();
-		data12.setTileType(TileType.FOREST);
-
-		Hexagon<TileData> hex13 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(8, 2)).get();
-		TileData data13 = hex13.getSatelliteData().get();
-		data13.setTileType(TileType.FOREST);
-
-
+		initGrid();
 
 		menuTextures = new ArrayList<>();
 		menuTextures.add(AssetLoader.assetManager.get("house.png", Texture.class));
@@ -166,7 +124,12 @@ public class LudumDare38 extends ApplicationAdapter {
 		BuildingType hoverItem = getMenuItem(Gdx.input.getX(), Gdx.graphics.getHeight() - Gdx.input.getY());
 		if(hoverItem != null)
 			displayToolTip(hoverItem);
-		else labelToolTip.setVisible(false);
+		else
+		{
+			labelToolTip.setVisible(false);
+		}
+		stage.act();
+		stage.draw();
 	}
 
 	private void initInput()
@@ -206,9 +169,17 @@ public class LudumDare38 extends ApplicationAdapter {
 					}
 					System.out.println(data.getCubeCoordinate().toAxialKey() +  " " + data.getSatelliteData().get().getTileType().getName());
 				}else{
-					currentCursorSelect = getMenuItem(screenX, screenY);
+					if(Utils.isInside(screenX, screenY,
+							btnReset.getX(), btnReset.getY(),
+							btnReset.getX() + btnReset.getWidth(), btnReset.getY() + btnReset.getHeight()))
+					{
+						currentCursorSelect = null;
+						clearGrid();
+						initGrid();
+					}else{
+						currentCursorSelect = getMenuItem(screenX, screenY);
+					}
 				}
-
 				return true;
 			}
 
@@ -437,7 +408,6 @@ public class LudumDare38 extends ApplicationAdapter {
 		labelToolTip.setY(Gdx.graphics.getHeight() - Gdx.input.getY() - labelToolTip.getLabel().getHeight());
 		labelToolTip.setHeight(labelToolTip.getLabel().getHeight());
 		labelToolTip.setVisible(true);
-		stage.draw();
 	}
 
 	private void createToolTip()
@@ -462,6 +432,93 @@ public class LudumDare38 extends ApplicationAdapter {
 		labelToolTip.getLabel().setWrap(true);
 		labelToolTip.setHeight(labelToolTip.getLabel().getHeight());
 		group.addActor(labelToolTip);
+	}
+
+	private void createResetButton()
+	{
+		Skin skin = new Skin();
+		Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+		pixmap.setColor(Color.WHITE);
+		pixmap.fill();
+		skin.add("white", new Texture(pixmap));
+		skin.add("default", new BitmapFont());
+
+		TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+		textButtonStyle.up = skin.newDrawable("white", new Color(0, 0, 0, 1));
+		textButtonStyle.font = skin.getFont("default");
+		skin.add("default", textButtonStyle);
+
+		btnReset = new TextButton("RESET", skin);
+		btnReset.setX(5);
+		btnReset.setY(Gdx.graphics.getHeight() - 25);
+		btnReset.setWidth(60);
+		btnReset.setVisible(true);
+		group.addActor(btnReset);
+	}
+
+	private void clearGrid()
+	{
+		Observable<Hexagon<TileData>> hexagons = grid.getHexagons();
+		hexagons.forEach(hex -> {
+            hex.getSatelliteData().get().setBuilding(BuildingType.NONE);
+            hex.getSatelliteData().get().setTileType(TileType.GRASS);
+        });
+	}
+
+	private void initGrid()
+	{
+		//Hardcoded cancer (Map settings)
+		Hexagon<TileData> hex1 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 5)).get();
+		TileData data1 = hex1.getSatelliteData().get();
+		data1.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex2 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(2, 1)).get();
+		TileData data2 = hex2.getSatelliteData().get();
+		data2.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex3 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(7, 0)).get();
+		TileData data3 = hex3.getSatelliteData().get();
+		data3.setTileType(TileType.WATER);
+
+		Hexagon<TileData> hex4 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 2)).get();
+		TileData data4 = hex4.getSatelliteData().get();
+		data4.setBuilding(BuildingType.HOUSE);
+
+		Hexagon<TileData> hex5 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, 3)).get();
+		TileData data5 = hex5.getSatelliteData().get();
+		data5.setBuilding(BuildingType.WIND);
+
+		Hexagon<TileData> hex6 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(3, 3)).get();
+		TileData data6 = hex6.getSatelliteData().get();
+		data6.setBuilding(BuildingType.FARM);
+
+		Hexagon<TileData> hex7 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, 2)).get();
+		TileData data7 = hex7.getSatelliteData().get();
+		data7.setBuilding(BuildingType.MINE);
+
+		Hexagon<TileData> hex8 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(1, 4)).get();
+		TileData data8 = hex8.getSatelliteData().get();
+		data8.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex9 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(6, 3)).get();
+		TileData data9 = hex9.getSatelliteData().get();
+		data9.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex10 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(5, -1)).get();
+		TileData data10 = hex10.getSatelliteData().get();
+		data10.setTileType(TileType.SAND);
+
+		Hexagon<TileData> hex11 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(4, -2)).get();
+		TileData data11 = hex11.getSatelliteData().get();
+		data11.setTileType(TileType.FOREST);
+
+		Hexagon<TileData> hex12 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(0, 6)).get();
+		TileData data12 = hex12.getSatelliteData().get();
+		data12.setTileType(TileType.FOREST);
+
+		Hexagon<TileData> hex13 = grid.getByCubeCoordinate(CubeCoordinate.fromCoordinates(8, 2)).get();
+		TileData data13 = hex13.getSatelliteData().get();
+		data13.setTileType(TileType.FOREST);
 	}
 
 	@Override
