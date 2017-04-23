@@ -16,17 +16,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.ui.WidgetGroup;
 import com.badlogic.gdx.utils.GdxRuntimeException;
-import org.apache.commons.io.FileUtils;
 import org.codetome.hexameter.core.api.*;
 import org.codetome.hexameter.core.api.Point;
 import org.codetome.hexameter.core.backport.Optional;
 import rx.Observable;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 
 public class LudumDare38 extends ApplicationAdapter {
@@ -41,7 +37,6 @@ public class LudumDare38 extends ApplicationAdapter {
 	private ShapeRenderer shapeRenderer;
 	private BuildingType currentCursorSelect = null;
 	private ShaderProgram invalidPlacement;
-	private ShaderProgram unlawfulPlacement;
 	private ShaderProgram okPlacement;
 	private List<Texture> menuTextures;
 	private String scoreText = "SCORE : %d";
@@ -52,9 +47,11 @@ public class LudumDare38 extends ApplicationAdapter {
 	private Stage stage;
 	private WidgetGroup group;
 	private TextButton btnReset;
+	private TextButton btnUndo;
 	private TextButton labelToolTip;
-	List<Coord> clouds = new ArrayList<>();
+	private List<Coord> clouds = new ArrayList<>();
 
+	private Stack<CubeCoordinate> lastActions = new Stack<>();
 	private static Random r = new Random();
 	
 	@Override
@@ -66,6 +63,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		stage.addActor(group);
 		createToolTip();
 		createResetButton();
+		createUndoButton();
 		batch = new SpriteBatch();
 		polyBatch = new PolygonSpriteBatch();
 
@@ -88,10 +86,6 @@ public class LudumDare38 extends ApplicationAdapter {
 		String redShader = Gdx.files.internal("redtrans.fs").readString();
 		invalidPlacement = new ShaderProgram(vertexShader, redShader);
 		if (!invalidPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + invalidPlacement.getLog());
-
-		String yellowShader = Gdx.files.internal("yellowtrans.fs").readString();
-		unlawfulPlacement = new ShaderProgram(vertexShader, yellowShader);
-		if (!unlawfulPlacement.isCompiled()) throw new GdxRuntimeException("Couldn't compile shader: " + unlawfulPlacement.getLog());
 
 		String okShader = Gdx.files.internal("slightlytrans.fs").readString();
 		okPlacement = new ShaderProgram(vertexShader, okShader);
@@ -219,6 +213,7 @@ public class LudumDare38 extends ApplicationAdapter {
 							&& isLegal(data.getSatelliteData().get()))
 					{
 						data.getSatelliteData().get().setBuilding(currentCursorSelect);
+						lastActions.push(data.getCubeCoordinate());
 						currentCursorSelect = null;
 					}
 				}else{
@@ -229,6 +224,17 @@ public class LudumDare38 extends ApplicationAdapter {
 						currentCursorSelect = null;
 						clearGrid();
 						initGrid();
+					}else if(Utils.isInside(screenX, screenY,
+							btnUndo.getX(), btnUndo.getY(),
+							btnUndo.getX() + btnUndo.getWidth(), btnUndo.getY() + btnUndo.getHeight()))
+					{
+						currentCursorSelect = null;
+						if(!lastActions.isEmpty())
+						{
+							CubeCoordinate c = lastActions.pop();
+							Hexagon<TileData> last = grid.getByCubeCoordinate(c).get();
+							last.getSatelliteData().get().setBuilding(BuildingType.NONE);
+						}
 					}else{
 						currentCursorSelect = getMenuItem(screenX, screenY);
 					}
@@ -349,7 +355,7 @@ public class LudumDare38 extends ApplicationAdapter {
 				Hexagon<TileData> data = dataOpt.get();
 				batch.begin();
 				if(data.getSatelliteData().get().getTileType() != TileType.WATER)
-					batch.setShader(isLegal(data.getSatelliteData().get()) ? okPlacement : unlawfulPlacement);
+					batch.setShader(isLegal(data.getSatelliteData().get()) ? okPlacement : invalidPlacement);
 				else
 					batch.setShader(invalidPlacement);
 
@@ -377,6 +383,8 @@ public class LudumDare38 extends ApplicationAdapter {
 
 	private boolean isLegal(TileData data)
 	{
+		if(data.getBuildingType() != BuildingType.NONE)
+			return false;
 		BuildingType type = currentCursorSelect;
 		Collection<Hexagon<TileData>> neighbors = grid.getNeighborsOf(data.getParent());
 		boolean farm = false;
@@ -563,6 +571,28 @@ public class LudumDare38 extends ApplicationAdapter {
 		btnReset.setWidth(60);
 		btnReset.setVisible(true);
 		group.addActor(btnReset);
+	}
+
+	private void createUndoButton()
+	{
+		Skin skin = new Skin();
+		Pixmap pixmap = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+		pixmap.setColor(Color.WHITE);
+		pixmap.fill();
+		skin.add("white", new Texture(pixmap));
+		skin.add("default", new BitmapFont());
+
+		TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+		textButtonStyle.up = skin.newDrawable("white", new Color(0, 0, 0, 1));
+		textButtonStyle.font = skin.getFont("default");
+		skin.add("default", textButtonStyle);
+
+		btnUndo = new TextButton("UNDO", skin);
+		btnUndo.setX(70);
+		btnUndo.setY(Gdx.graphics.getHeight() - 25);
+		btnUndo.setWidth(60);
+		btnUndo.setVisible(true);
+		group.addActor(btnUndo);
 	}
 
 	private void clearGrid()
