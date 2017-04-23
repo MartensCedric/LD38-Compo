@@ -31,8 +31,11 @@ public class AssetLoader
         assetManager.load("bank.png", Texture.class);
         assetManager.load("rocket.png", Texture.class);
         assetManager.load("cloud.png", Texture.class);
+
         sounds.put("click", Gdx.audio.newSound(Gdx.files.internal("sound/click.wav")));
         sounds.put("bad", Gdx.audio.newSound(Gdx.files.internal("sound/bad.wav")));
+        sounds.put("select", Gdx.audio.newSound(Gdx.files.internal("sound/select.wav")));
+
         assetManager.finishLoading();
     }
 

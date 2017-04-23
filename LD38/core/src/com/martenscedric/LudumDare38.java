@@ -236,8 +236,16 @@ public class LudumDare38 extends ApplicationAdapter {
 							btnReset.getX() + btnReset.getWidth(), btnReset.getY() + btnReset.getHeight()))
 					{
 						currentCursorSelect = null;
-						clearGrid();
-						initGrid();
+
+						if(!lastActions.isEmpty())
+						{
+							AssetLoader.sounds.get("select").play();
+							clearGrid();
+							initGrid();
+						}else{
+							AssetLoader.sounds.get("bad").play();
+						}
+
 					}else if(Utils.isInside(screenX, screenY,
 							btnUndo.getX(), btnUndo.getY(),
 							btnUndo.getX() + btnUndo.getWidth(), btnUndo.getY() + btnUndo.getHeight()))
@@ -245,12 +253,18 @@ public class LudumDare38 extends ApplicationAdapter {
 						currentCursorSelect = null;
 						if(!lastActions.isEmpty())
 						{
+							AssetLoader.sounds.get("select").play();
 							CubeCoordinate c = lastActions.pop();
 							Hexagon<TileData> last = grid.getByCubeCoordinate(c).get();
 							last.getSatelliteData().get().setBuilding(BuildingType.NONE);
+						}else{
+							AssetLoader.sounds.get("bad").play();
 						}
 					}else{
 						currentCursorSelect = getMenuItem(screenX, screenY);
+
+						if(currentCursorSelect != null)
+							AssetLoader.sounds.get("select").play();
 					}
 				}
 				return true;
@@ -628,6 +642,8 @@ public class LudumDare38 extends ApplicationAdapter {
             hex.getSatelliteData().get().setBuilding(BuildingType.NONE);
             hex.getSatelliteData().get().setTileType(TileType.GRASS);
         });
+
+		lastActions.clear();
 	}
 
 	private void initGrid()
