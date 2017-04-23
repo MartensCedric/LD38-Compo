@@ -2,10 +2,14 @@ package com.martenscedric;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.assets.loaders.SoundLoader;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
+
+import java.util.HashMap;
 
 /**
  * Created by Cedric on 2017-04-22.
@@ -13,6 +17,7 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 public class AssetLoader
 {
     public static AssetManager assetManager = new AssetManager();
+    public static HashMap<String, Sound> sounds = new HashMap<>();
     private static BitmapFont font = null;
 
     public static void load()
@@ -26,6 +31,8 @@ public class AssetLoader
         assetManager.load("bank.png", Texture.class);
         assetManager.load("rocket.png", Texture.class);
         assetManager.load("cloud.png", Texture.class);
+        sounds.put("click", Gdx.audio.newSound(Gdx.files.internal("sound/click.wav")));
+        sounds.put("bad", Gdx.audio.newSound(Gdx.files.internal("sound/bad.wav")));
         assetManager.finishLoading();
     }
 

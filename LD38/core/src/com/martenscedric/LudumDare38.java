@@ -225,7 +225,10 @@ public class LudumDare38 extends ApplicationAdapter {
 					{
 						data.getSatelliteData().get().setBuilding(currentCursorSelect);
 						lastActions.push(data.getCubeCoordinate());
+						AssetLoader.sounds.get("click").play();
 						currentCursorSelect = null;
+					}else{
+						AssetLoader.sounds.get("bad").play();
 					}
 				}else{
 					if(Utils.isInside(screenX, screenY,
