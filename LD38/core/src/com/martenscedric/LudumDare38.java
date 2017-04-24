@@ -199,7 +199,14 @@ public class LudumDare38 extends ApplicationAdapter {
 		Gdx.input.setInputProcessor(new InputProcessor() {
 			@Override
 			public boolean keyDown(int keycode) {
-				return false;
+
+				if(keycode >= Input.Keys.NUM_1
+						&& keycode < Input.Keys.NUM_1 + menuTextures.size())
+				{
+					currentCursorSelect = BuildingType.values()[keycode - Input.Keys.NUM_1 + 1];
+				}
+
+				return true;
 			}
 
 			@Override
@@ -208,7 +215,8 @@ public class LudumDare38 extends ApplicationAdapter {
 			}
 
 			@Override
-			public boolean keyTyped(char character) {
+			public boolean keyTyped(char character)
+			{
 				return false;
 			}
 
