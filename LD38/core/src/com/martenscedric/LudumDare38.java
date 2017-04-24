@@ -95,8 +95,8 @@ public class LudumDare38 extends ApplicationAdapter {
 		initGrid();
 
 		menuTextures = new ArrayList<>();
-		menuTextures.add(AssetLoader.assetManager.get("house.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("farm.png", Texture.class));
+		menuTextures.add(AssetLoader.assetManager.get("house.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("mine.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("wind.png", Texture.class));
 		menuTextures.add(AssetLoader.assetManager.get("factory.png", Texture.class));
@@ -353,11 +353,11 @@ public class LudumDare38 extends ApplicationAdapter {
 			Texture texture = null;
 			switch (currentCursorSelect)
 			{
-				case HOUSE:
-					texture = AssetLoader.assetManager.get("house.png", Texture.class);
-					break;
 				case FARM:
 					texture = AssetLoader.assetManager.get("farm.png", Texture.class);
+					break;
+				case HOUSE:
+					texture = AssetLoader.assetManager.get("house.png", Texture.class);
 					break;
 				case MINE:
 					texture = AssetLoader.assetManager.get("mine.png", Texture.class);
@@ -427,6 +427,7 @@ public class LudumDare38 extends ApplicationAdapter {
 		boolean wealth = false;
 		switch (type)
 		{
+
 			case FARM:
 				for(Hexagon<TileData> tile : neighbors)
 				{
