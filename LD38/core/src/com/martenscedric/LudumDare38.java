@@ -204,8 +204,11 @@ public class LudumDare38 extends ApplicationAdapter {
 						&& keycode < Input.Keys.NUM_1 + menuTextures.size())
 				{
 					currentCursorSelect = BuildingType.values()[keycode - Input.Keys.NUM_1 + 1];
+				}else if(keycode == Input.Keys.Q
+						&& !lastActions.empty())
+				{
+					undo();
 				}
-
 				return true;
 			}
 
@@ -264,10 +267,7 @@ public class LudumDare38 extends ApplicationAdapter {
 						currentCursorSelect = null;
 						if(!lastActions.isEmpty())
 						{
-							AssetLoader.sounds.get("select").play();
-							CubeCoordinate c = lastActions.pop();
-							Hexagon<TileData> last = grid.getByCubeCoordinate(c).get();
-							last.getSatelliteData().get().setBuilding(BuildingType.NONE);
+							undo();
 						}else{
 							AssetLoader.sounds.get("bad").play();
 						}
@@ -301,6 +301,13 @@ public class LudumDare38 extends ApplicationAdapter {
 				return false;
 			}
 		});
+	}
+
+	private void undo() {
+		AssetLoader.sounds.get("select").play();
+		CubeCoordinate c = lastActions.pop();
+		Hexagon<TileData> last = grid.getByCubeCoordinate(c).get();
+		last.getSatelliteData().get().setBuilding(BuildingType.NONE);
 	}
 
 	private void initHexData()
